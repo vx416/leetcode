@@ -143,6 +143,51 @@ func failFunc(s string) []int {
 	return failure
 }
 
+func getNext3(s string) []int {
+	if len(s) == 0 {
+		return []int{}
+	}
+
+	next := make([]int, len(s))
+	next[0] = -1 // 代表前面沒有半個 char prefix == suffix
+
+	prefixIndex, suffixIndex := -1, 0
+	// 從 1 ~ n-1 個開始找 prefix == suffix
+	for suffixIndex < len(s)-1 {
+
+		if prefixIndex == -1 || s[suffixIndex] == s[prefixIndex] {
+			// when s[suffixIndex] == s[prefixIndex]
+			// next[suffixIndex+1] = prefixIndex+1
+			// next[i] = 在 i index 前面有幾個char 符合 prefix == suffix
+			prefixIndex++
+			suffixIndex++
+			next[suffixIndex] = prefixIndex
+		} else {
+			// when s[suffixIndex] != s[prefixIndex]
+			// 代表 suffix 之前 有 prefix-1 個(k) char 一樣
+			// 如果 k == 0 && s[suffixIndex] != s[prefixIndex]
+			// 需要讓 suffixIndex+1 跟 0 開始重新比對
+			k := prefixIndex
+			if k == 0 {
+				suffixIndex++
+				prefixIndex = 0
+				continue
+			}
+
+			// 如果 k > 0
+			// 代表 suffixIndex 前 k 個字元跟 s[0:k] 一樣
+			// 透過 next[k] 我們可以發現 k這個 Index 前有 next[k](m) 個字元 prefix == suffix
+			// 同時也代表 suffixIndex 前 k 個字元也有 m 個字元 prefix == suffix
+			// 因此我們可以透過將 prefixIndex 重新定位成 m 來過濾掉不必要的比對字元
+			if k > 0 {
+				m := next[k]
+				prefixIndex = m
+			}
+		}
+	}
+	return next
+}
+
 func getNext(s string) []int {
 	next := make([]int, len(s))
 	next[0] = -1
@@ -196,9 +241,6 @@ func KMPSearch(S, T string) int {
 	return 0
 }
 
-// dp[i] = dp[i-1] + 1 if s[i-1] = s[dp[i-1]]
-//         1 if s[i-1] == s[0]
-//         0
 func getNext2(s string) []int {
 	result := make([]int, len(s))
 	result[0] = 0
